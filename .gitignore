@@ -1,0 +1,18 @@
+# Compiled Elisp files
+*.elc
+
+# Backup files
+*~
+\#*\#
+.\#*
+
+# Auto-save/backup
+auto-save-list/
+backups/
+
+# Org-mode
+.org-id-locations
+*_archive
+
+# Mac OS X files
+.DS_Store

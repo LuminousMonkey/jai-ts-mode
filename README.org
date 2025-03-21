@@ -1,0 +1,85 @@
+#+TITLE: jai-ts-mode
+#+AUTHOR: Mike Aldred
+#+DATE:
+#+DESCRIPTION: A Tree-sitter based Emacs major mode for the Jai programming language using tree-sitter-jai parser
+#+PROPERTY: header-args :eval never-export
+
+* jai-ts-mode
+
+A major mode for editing [[https://en.wikipedia.org/wiki/Jai_(programming_language)][Jai]] code in Emacs, using the tree-sitter-jai parser for advanced syntax features.
+
+** Features
+
+- Syntax highlighting for Jai code
+- Proper indentation
+- Comment-aware editing (M-q works only in comments)
+- Tree-sitter based syntax parsing
+
+** Requirements
+
+- Emacs 29.1 or newer (with tree-sitter support)
+- Tree-sitter-jai grammar
+
+** Installation
+
+*** Using straight.el and use-package
+
+Important: The treesit library is built into Emacs 29+. It is NOT a separate package to install with straight.el or use-package.
+
+#+begin_src elisp
+;; Install the jai-ts-mode major mode
+(use-package jai-ts-mode
+  :straight (:host github :repo "luminousmonkey/jai-ts-mode")
+  :mode "\\.jai\\'"
+  :config
+  ;; Configure tree-sitter for Jai (treesit is built into Emacs 29+)
+  (add-to-list 'treesit-language-source-alist
+               '(jai "https://github.com/constantitus/tree-sitter-jai"))
+  ;; Optional: Install the grammar automatically if not present
+  (dolist (lang '(jai))
+    (unless (treesit-language-available-p lang)
+      (treesit-install-language-grammar lang))))
+#+end_src
+
+*** Manual installation
+
+1. Clone this repository:
+   #+begin_src bash
+   git clone https://github.com/luminousmonkey/jai-ts-mode.git ~/.emacs.d/site-lisp/jai-ts-mode
+   #+end_src
+
+2. Add the following to your Emacs configuration:
+   #+begin_src elisp
+   (add-to-list 'load-path "~/.emacs.d/site-lisp/jai-ts-mode")
+   (require 'jai-ts-mode)
+   #+end_src
+
+3. Install the tree-sitter grammar for Jai:
+   #+begin_src elisp
+   ;; treesit is built into Emacs 29+, not a separate package
+   (add-to-list 'treesit-language-source-alist
+                '(jai "https://github.com/constantitus/tree-sitter-jai"))
+   (treesit-install-language-grammar 'jai)
+   #+end_src
+
+** Usage
+
+Files with the =.jai= extension will automatically open in =jai-ts-mode=.
+
+** Key Features
+
+- *Comment-aware editing*: M-q (fill-paragraph) works only in comments and does nothing in code
+- Syntax highlighting for Jai-specific constructs
+- Proper indentation rules for Jai code
+
+** Tree-sitter Grammar
+
+This package depends on the [[https://github.com/constantitus/tree-sitter-jai][Jai tree-sitter grammar]] by constantitus.
+
+** Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+** License
+
+This project is licensed under the MIT License - see the [[file:LICENSE][LICENSE]] file for details.
