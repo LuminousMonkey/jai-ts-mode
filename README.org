@@ -24,21 +24,30 @@ A major mode for editing [[https://en.wikipedia.org/wiki/Jai_(programming_langua
 
 *** Using straight.el and use-package
 
-Important: The treesit library is built into Emacs 29+. It is NOT a separate package to install with straight.el or use-package.
+Important: This mode requires Emacs 29.1 or newer with built-in tree-sitter support.
 
 #+begin_src elisp
-;; Install the jai-ts-mode major mode
+;; Install jai-ts-mode
 (use-package jai-ts-mode
   :straight (:host github :repo "luminousmonkey/jai-ts-mode")
   :mode "\\.jai\\'"
-  :config
-  ;; Configure tree-sitter for Jai (treesit is built into Emacs 29+)
+  :init
+  ;; Set up tree-sitter for Jai - this must be done before loading jai-ts-mode
   (add-to-list 'treesit-language-source-alist
                '(jai "https://github.com/constantitus/tree-sitter-jai"))
+  
   ;; Optional: Install the grammar automatically if not present
   (dolist (lang '(jai))
     (unless (treesit-language-available-p lang)
       (treesit-install-language-grammar lang))))
+
+;; Example with custom key bindings
+(use-package jai-ts-mode
+  :straight (:host github :repo "luminousmonkey/jai-ts-mode")
+  :mode "\\.jai\\'"
+  :bind (:map jai-ts-mode-map
+              ("<f5>" . my/build-jai)
+              ("<f7>" . my/align-jai-struct)))
 #+end_src
 
 *** Manual installation

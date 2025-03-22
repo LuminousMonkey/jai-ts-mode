@@ -37,8 +37,17 @@
 
 ;;; Code:
 ;; Dependencies
-(require 'treesit)
+(eval-when-compile
+  (declare-function treesit-ready-p "treesit")
+  (declare-function treesit-parser-create "treesit")
+  (declare-function treesit-font-lock-rules "treesit")
+  (declare-function treesit-major-mode-setup "treesit"))
+
+(require 'treesit nil t)
 (require 'prog-mode)
+
+(unless (featurep 'treesit)
+  (error "Treesit not available in this Emacs; use Emacs 29.1 or newer"))
 
 ;; Customization options
 (defgroup jai-ts-mode nil
