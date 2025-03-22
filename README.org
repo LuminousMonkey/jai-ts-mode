@@ -33,18 +33,25 @@ Important: This mode requires Emacs 29.1 or newer with built-in tree-sitter supp
   :mode "\\.jai\\'"
   :init
   ;; Set up tree-sitter for Jai - this must be done before loading jai-ts-mode
-  (add-to-list 'treesit-language-source-alist
-               '(jai "https://github.com/constantitus/tree-sitter-jai"))
-  
-  ;; Optional: Install the grammar automatically if not present
-  (dolist (lang '(jai))
-    (unless (treesit-language-available-p lang)
-      (treesit-install-language-grammar lang))))
+  ;; Check if treesit is available first
+  (when (featurep 'treesit)
+    (add-to-list 'treesit-language-source-alist
+                 '(jai "https://github.com/constantitus/tree-sitter-jai"))
+    
+    ;; Optional: Install the grammar automatically if not present
+    (dolist (lang '(jai))
+      (unless (treesit-language-available-p lang)
+        (treesit-install-language-grammar lang)))))
 
 ;; Example with custom key bindings
 (use-package jai-ts-mode
   :straight (:host github :repo "luminousmonkey/jai-ts-mode")
   :mode "\\.jai\\'"
+  :init
+  ;; Check if treesit is available first
+  (when (featurep 'treesit)
+    (add-to-list 'treesit-language-source-alist
+                 '(jai "https://github.com/constantitus/tree-sitter-jai")))
   :bind (:map jai-ts-mode-map
               ("<f5>" . my/build-jai)
               ("<f7>" . my/align-jai-struct)))
