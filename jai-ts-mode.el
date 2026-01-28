@@ -69,152 +69,100 @@
   "Face for annotations (@xyz) in Jai."
   :group 'jai-ts-mode)
 
-(defvar jai-ts-font-lock-rules
-  '(
-    :language jai
-    :feature comment
-    ([(comment) (block_comment)] @font-lock-comment-face)
-
-    :language jai
-    :feature directive
-    ((compiler_directive) @font-lock-preprocessor-face)
-
-    :language jai
-    :feature number
-    ([(integer) (float)] @font-lock-number-face)
-
-    :language jai
-    :feature string
-    ([(string) (string_content)] @font-lock-string-face
-     ;; Here string support
-     (string_directive
-      directive: "#string" @font-lock-preprocessor-face
-      (heredoc_start) @font-lock-keyword-face
-      (heredoc_body) @font-lock-string-face
-      (heredoc_end) @font-lock-keyword-face))
-
-    :language jai
-    :feature constant
-    ([(boolean) (null)] @font-lock-constant-face
-     (uninitialized) @jai-uninitialized-face
-     ;; Enum values with dot prefix (.OPTION_1)
-     (member_expression "." (identifier) @font-lock-constant-face)
-     ;; Regular constants (ALL_CAPS)
-     ((identifier) @font-lock-constant-face
-      (:match "^_*[A-Z][A-Z0-9_]*$" @font-lock-constant-face))
-     ;; Enum declaration constants
-     (enum_declaration "{" (identifier) @font-lock-constant-face))
-
-    :language jai
-    :feature type
-    (;; Types in all contexts
-     (types (identifier) @font-lock-type-face)
-
-     ;; Array types - match identifier at end of array type expression
-     (array_type (identifier) @font-lock-type-face)
-
-     ;; Struct literals - type name
-     (struct_literal (identifier) @font-lock-type-face)
-
-     ;; Type declarations
-     (struct_declaration (identifier) @font-lock-type-face)
-     (enum_declaration (identifier) @font-lock-type-face)
-
-     ;; Identifier used as type in various contexts
-     (variable_declaration ":" (identifier) @font-lock-type-face)
-     (parameter ":" (identifier) @font-lock-type-face))
-
-    :language jai
-    :feature variables
-    (;; Variable declarations (including multi-variable)
-     (variable_declaration
-      (identifier) @font-lock-variable-name-face)
-
-     ;; Assignment statements (left-hand side identifiers)
-     (assignment_statement
-      (identifier) @font-lock-variable-name-face)
-
-     ;; Update statements (+=, -=, etc)
-     (update_statement
-      (identifier) @font-lock-variable-name-face)
-
-     ;; Place directive
-     (place_directive
-      (identifier) @font-lock-variable-name-face)
-
-     ;; Constants
-     (const_declaration
-      (identifier) @font-lock-constant-face)
-
-     ;; Member expressions - simple approach
-     (member_expression
-      "." @font-lock-punctuation-face)
-
-     ;; Just the leaves of member expressions (should be safe)
-     (member_expression
-      (identifier) @font-lock-variable-name-face)
-
-     ;; Operators for all contexts
-     [":" "="] @font-lock-operator-face)
-
-    :language jai
-    :feature procedure-name
-    ((procedure_declaration
-      name: (identifier) @font-lock-function-name-face))
-
-    :language jai
-    :feature procedure-parameter
-    ((parameter
-      name: (identifier) @font-lock-variable-name-face))
-
-    :language jai
-    :feature procedure-named-return
-    ((named_return (identifier) @font-lock-variable-name-face))
-
-    :language jai
-    :feature return-type
-    (;; Simple return type (like "float" in "-> float")
-     (procedure_returns
-      (returns
-       (identifier_type
-        type: (identifier) @font-lock-type-face))))
-
-    :language jai
-    :feature annotation
-    ((note) @jai-annotation-face)
-
-    ;; Missing keyword highlighting in font-lock-rules
-    :language jai
-    :feature keyword
-    ([
-      ;; Control flow keywords
-      "if" "else" "then" "ifx" "case"
-      "while" "for" "break" "continue" "return"
-
-      ;; Type and structure keywords
-      "struct" "union" "enum" "enum_flags"
-
-      ;; Function modifiers
-      "inline" "no_inline"
-
-      ;; Other keywords
-      "using" "remove" "defer" "cast" "xx" "push_context"
-      ] @font-lock-keyword-face)
-    ))
-
 (defun jai-ts-setup ()
   "Setup for `jai-ts-mode'."
   (interactive)
   (setq-local treesit-font-lock-settings
-              (apply #'treesit-font-lock-rules
-                     jai-ts-font-lock-rules))
+              (treesit-font-lock-rules
+               ;; Comments
+               :language 'jai
+               :feature 'comment
+               '((comment) @font-lock-comment-face
+                 (block_comment) @font-lock-comment-face)
+
+               ;; Compiler directives (#import, #load, #run, #scope_file, etc)
+               :language 'jai
+               :feature 'directive
+               '((compiler_directive) @font-lock-preprocessor-face
+                 (import directive: (compiler_directive) @font-lock-preprocessor-face)
+                 (load directive: (compiler_directive) @font-lock-preprocessor-face)
+                 (run_or_insert_expression (compiler_directive) @font-lock-preprocessor-face)
+                 (string_directive) @font-lock-preprocessor-face
+                 (heredoc_start) @font-lock-preprocessor-face
+                 (heredoc_end) @font-lock-preprocessor-face
+                 (heredoc_body) @font-lock-string-face)
+
+               ;; Numbers and character literals
+               :language 'jai
+               :feature 'number
+               '((integer) @font-lock-number-face
+                 (float) @font-lock-number-face
+                 (char_string) @font-lock-number-face)
+
+               ;; Strings
+               :language 'jai
+               :feature 'string
+               '((string) @font-lock-string-face
+                 (string_content) @font-lock-string-face
+                 (escape_sequence) @font-lock-escape-face)
+
+               ;; Constants (literals, enum fields, const declarations)
+               :language 'jai
+               :feature 'constant
+               '((boolean) @font-lock-constant-face
+                 (null) @font-lock-constant-face
+                 (uninitialized) @jai-uninitialized-face
+                 (enum_field (identifier) @font-lock-constant-face)
+                 (const_declaration name: (identifier) @font-lock-constant-face))
+
+               ;; Types (type annotations, struct/enum names, cast targets)
+               :language 'jai
+               :feature 'type
+               '((types (identifier) @font-lock-type-face)
+                 (array_type type: (identifier) @font-lock-type-face)
+                 (pointer_type (types (identifier) @font-lock-type-face))
+                 (struct_literal (identifier) @font-lock-type-face)
+                 (struct_declaration name: (identifier) @font-lock-type-face)
+                 (enum_declaration name: (identifier) @font-lock-type-face)
+                 (cast_expression (types (identifier) @font-lock-type-face))
+                 (identifier_type type: (identifier) @font-lock-type-face))
+
+               ;; Function definitions and calls
+               :language 'jai
+               :feature 'function
+               '((procedure_declaration name: (identifier) @font-lock-function-name-face)
+                 (call_expression function: (identifier) @font-lock-function-call-face))
+
+               ;; Variables (declarations, parameters, loop variables)
+               :language 'jai
+               :feature 'variable
+               '((variable_declaration name: (identifier) @font-lock-variable-name-face)
+                 (parameter name: (identifier) @font-lock-variable-name-face)
+                 (named_return (identifier) @font-lock-variable-name-face)
+                 (for_statement value: (identifier) @font-lock-variable-name-face)
+                 (assignment_statement (identifier) @font-lock-variable-name-face))
+
+               ;; Keywords
+               :language 'jai
+               :feature 'keyword
+               '(["if" "else" "then" "ifx" "case"
+                  "while" "for" "break" "continue" "return"
+                  "struct" "union" "enum" "enum_flags"
+                  "inline" "no_inline"
+                  "using" "remove" "defer" "cast" "xx" "push_context"] @font-lock-keyword-face)
+
+               ;; Annotations (@notes)
+               :language 'jai
+               :feature 'annotation
+               '((note) @jai-annotation-face)))
+
   (setq-local font-lock-defaults nil)
   (setq-local treesit-font-lock-feature-list
-              '((comment directive annotation)
-                (keyword type number string constant)
-                (variables procedure-name procedure-parameter procedure-named-return return-type)))
+              '((comment directive)
+                (keyword string number)
+                (type constant function variable annotation)))
 
-  (setq-local treesit-font-lock-level 5)
+  (setq-local treesit-font-lock-level 4)
   (treesit-major-mode-setup))
 
 (defvar jai-mode-syntax-table
